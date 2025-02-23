@@ -1,0 +1,269 @@
+ Volume in drive C has no label.
+ Volume Serial Number is D03A-3F5B
+
+ Directory of C:\Users\newsb\OneDrive\Documents\crypto
+
+02/23/2025  06:02 AM            11,206 PanaromaswapV1Pair.sol
+               1 File(s)         11,206 bytes
+               0 Dir(s)  106,070,925,312 bytes free
+
+C:\Users\newsb\OneDrive\Documents\crypto>slither PanaromaswapV1Pair.sol --detect reentrancy-eth,divide-before-multiply
+'solc --version' running
+'solc PanaromaswapV1Pair.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,C:\Users\newsb\OneDrive\Documents\crypto' running
+INFO:Slither:PanaromaswapV1Pair.sol analyzed (10 contracts with 2 detectors), 0 result(s) found
+
+C:\Users\newsb\OneDrive\Documents\crypto>slither PanaromaswapV1Pair.sol --json results.json
+'solc --version' running
+'solc PanaromaswapV1Pair.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes,compact-format --allow-paths .,C:\Users\newsb\OneDrive\Documents\crypto' running
+
+PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103) uses a weak PRNG: "blockTimestamp = uint32(block.timestamp % 2 ** 32) (PanaromaswapV1Pair.sol#92)"
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#weak-PRNG
+
+PanaromaswapV1Pair._safeTransfer(address,address,uint256) (PanaromaswapV1Pair.sol#48-51) uses a dangerous strict equality:
+        - require(bool,string)(success && (data.length == 0 || abi.decode(data,(bool))),PanaromaswapV1: TRANSFER_FAILED) (PanaromaswapV1Pair.sol#50)
+PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154) uses a dangerous strict equality:
+        - _totalSupply == 0 (PanaromaswapV1Pair.sol#142)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dangerous-strict-equalities
+
+Reentrancy in PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179):
+        External calls:
+        - _safeTransfer(_token0,to,amount0) (PanaromaswapV1Pair.sol#171)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1) (PanaromaswapV1Pair.sol#172)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        State variables written after the call(s):
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+                - blockTimestampLast = blockTimestamp (PanaromaswapV1Pair.sol#101)
+        PanaromaswapV1Pair.blockTimestampLast (PanaromaswapV1Pair.sol#28) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - kLast = uint256(reserve0).mul(reserve1) (PanaromaswapV1Pair.sol#177)
+        PanaromaswapV1Pair.kLast (PanaromaswapV1Pair.sol#32) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._mintFee(uint112,uint112) (PanaromaswapV1Pair.sol#106-129)
+        - PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179)
+        - PanaromaswapV1Pair.kLast (PanaromaswapV1Pair.sol#32)
+        - PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+                - reserve0 = uint112(balance0) (PanaromaswapV1Pair.sol#99)
+        PanaromaswapV1Pair.reserve0 (PanaromaswapV1Pair.sol#26) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154)
+        - PanaromaswapV1Pair.skim(address) (PanaromaswapV1Pair.sol#216-221)
+        - PanaromaswapV1Pair.sync() (PanaromaswapV1Pair.sol#224-226)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+                - reserve1 = uint112(balance1) (PanaromaswapV1Pair.sol#100)
+        PanaromaswapV1Pair.reserve1 (PanaromaswapV1Pair.sol#27) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154)
+        - PanaromaswapV1Pair.skim(address) (PanaromaswapV1Pair.sol#216-221)
+        - PanaromaswapV1Pair.sync() (PanaromaswapV1Pair.sol#224-226)
+Reentrancy in PanaromaswapV1Pair.swap(uint256,uint256,address,bytes) (PanaromaswapV1Pair.sol#182-213):
+        External calls:
+        - _safeTransfer(_token0,to,amount0Out) (PanaromaswapV1Pair.sol#194)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1Out) (PanaromaswapV1Pair.sol#195)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - IPanaromaswapV1Callee(to).panaromaswapV1Call(msg.sender,amount0Out,amount1Out,data) (PanaromaswapV1Pair.sol#196)
+        State variables written after the call(s):
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+                - blockTimestampLast = blockTimestamp (PanaromaswapV1Pair.sol#101)
+        PanaromaswapV1Pair.blockTimestampLast (PanaromaswapV1Pair.sol#28) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+                - reserve0 = uint112(balance0) (PanaromaswapV1Pair.sol#99)
+        PanaromaswapV1Pair.reserve0 (PanaromaswapV1Pair.sol#26) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154)
+        - PanaromaswapV1Pair.skim(address) (PanaromaswapV1Pair.sol#216-221)
+        - PanaromaswapV1Pair.sync() (PanaromaswapV1Pair.sol#224-226)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+                - reserve1 = uint112(balance1) (PanaromaswapV1Pair.sol#100)
+        PanaromaswapV1Pair.reserve1 (PanaromaswapV1Pair.sol#27) can be used in cross function reentrancies:
+        - PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103)
+        - PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179)
+        - PanaromaswapV1Pair.getReserves() (PanaromaswapV1Pair.sol#42-46)
+        - PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154)
+        - PanaromaswapV1Pair.skim(address) (PanaromaswapV1Pair.sol#216-221)
+        - PanaromaswapV1Pair.sync() (PanaromaswapV1Pair.sol#224-226)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
+
+PanaromaswapV1Pair.initialize(address,address,address,address)._token0 (PanaromaswapV1Pair.sol#70) lacks a zero-check on :
+                - token0 = _token0 (PanaromaswapV1Pair.sol#72)
+PanaromaswapV1Pair.initialize(address,address,address,address)._token1 (PanaromaswapV1Pair.sol#70) lacks a zero-check on :
+                - token1 = _token1 (PanaromaswapV1Pair.sol#73)
+PanaromaswapV1Pair.initialize(address,address,address,address)._routerAddress (PanaromaswapV1Pair.sol#70) lacks a zero-check on :
+                - RouterAddress = _routerAddress (PanaromaswapV1Pair.sol#74)
+PanaromaswapV1Pair.initialize(address,address,address,address)._routerAddress2 (PanaromaswapV1Pair.sol#70) lacks a zero-check on :
+                - RouterAddress2 = _routerAddress2 (PanaromaswapV1Pair.sol#75)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+
+Reentrancy in PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179):
+        External calls:
+        - _safeTransfer(_token0,to,amount0) (PanaromaswapV1Pair.sol#171)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1) (PanaromaswapV1Pair.sol#172)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        State variables written after the call(s):
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+                - price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed (PanaromaswapV1Pair.sol#96)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+                - price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed (PanaromaswapV1Pair.sol#97)
+Reentrancy in PanaromaswapV1Pair.swap(uint256,uint256,address,bytes) (PanaromaswapV1Pair.sol#182-213):
+        External calls:
+        - _safeTransfer(_token0,to,amount0Out) (PanaromaswapV1Pair.sol#194)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1Out) (PanaromaswapV1Pair.sol#195)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - IPanaromaswapV1Callee(to).panaromaswapV1Call(msg.sender,amount0Out,amount1Out,data) (PanaromaswapV1Pair.sol#196)
+        State variables written after the call(s):
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+                - price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed (PanaromaswapV1Pair.sol#96)
+        - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+                - price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed (PanaromaswapV1Pair.sol#97)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2
+
+Reentrancy in PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179):
+        External calls:
+        - _safeTransfer(_token0,to,amount0) (PanaromaswapV1Pair.sol#171)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1) (PanaromaswapV1Pair.sol#172)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        Event emitted after the call(s):
+        - Burn(msg.sender,amount0,amount1,to) (PanaromaswapV1Pair.sol#178)
+        - Sync(reserve0,reserve1) (PanaromaswapV1Pair.sol#102)
+                - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#176)
+Reentrancy in PanaromaswapV1Pair.swap(uint256,uint256,address,bytes) (PanaromaswapV1Pair.sol#182-213):
+        External calls:
+        - _safeTransfer(_token0,to,amount0Out) (PanaromaswapV1Pair.sol#194)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - _safeTransfer(_token1,to,amount1Out) (PanaromaswapV1Pair.sol#195)
+                - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+        - IPanaromaswapV1Callee(to).panaromaswapV1Call(msg.sender,amount0Out,amount1Out,data) (PanaromaswapV1Pair.sol#196)
+        Event emitted after the call(s):
+        - Swap(msg.sender,amount0In,amount1In,amount0Out,amount1Out,to) (PanaromaswapV1Pair.sol#212)
+        - Sync(reserve0,reserve1) (PanaromaswapV1Pair.sol#102)
+                - _update(balance0,balance1,_reserve0,_reserve1) (PanaromaswapV1Pair.sol#211)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+
+PanaromaswapV1ERC20.permit(address,address,uint256,uint256,uint8,bytes32,bytes32) (PanaromaswapV1ERC20.sol#83-95) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(deadline >= block.timestamp,PanaromaswapV1: EXPIRED) (PanaromaswapV1ERC20.sol#84)
+PanaromaswapV1Pair._safeTransfer(address,address,uint256) (PanaromaswapV1Pair.sol#48-51) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(success && (data.length == 0 || abi.decode(data,(bool))),PanaromaswapV1: TRANSFER_FAILED) (PanaromaswapV1Pair.sol#50)
+PanaromaswapV1Pair._update(uint256,uint256,uint112,uint112) (PanaromaswapV1Pair.sol#90-103) uses timestamp for comparisons
+        Dangerous comparisons:
+        - timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0 (PanaromaswapV1Pair.sol#94)
+PanaromaswapV1Pair._mintFee(uint112,uint112) (PanaromaswapV1Pair.sol#106-129) uses timestamp for comparisons
+        Dangerous comparisons:
+        - rootK > rootKLast && comEnable (PanaromaswapV1Pair.sol#114)
+        - liquidity > 0 (PanaromaswapV1Pair.sol#118)
+        - rootK > rootKLast (PanaromaswapV1Pair.sol#119)
+        - liquidity_scope_2 > 0 (PanaromaswapV1Pair.sol#123)
+PanaromaswapV1Pair.mint(address) (PanaromaswapV1Pair.sol#132-154) uses timestamp for comparisons
+        Dangerous comparisons:
+        - _totalSupply == 0 (PanaromaswapV1Pair.sol#142)
+        - require(bool,string)(liquidity > 0,PanaromaswapV1: INSUFFICIENT_LIQUIDITY_MINTED) (PanaromaswapV1Pair.sol#148)
+PanaromaswapV1Pair.burn(address) (PanaromaswapV1Pair.sol#157-179) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(amount0 > 0 && amount1 > 0,PanaromaswapV1: INSUFFICIENT_LIQUIDITY_BURNED) (PanaromaswapV1Pair.sol#169)
+PanaromaswapV1Pair.swap(uint256,uint256,address,bytes) (PanaromaswapV1Pair.sol#182-213) uses timestamp for comparisons
+        Dangerous comparisons:
+        - require(bool,string)(amount0Out < _reserve0 && amount1Out < _reserve1,PanaromaswapV1: INSUFFICIENT_LIQUIDITY) (PanaromaswapV1Pair.sol#186)
+        - require(bool,string)(amount0In > 0 || amount1In > 0,PanaromaswapV1: INSUFFICIENT_INPUT_AMOUNT) (PanaromaswapV1Pair.sol#202)
+        - require(bool,string)((balance0Adjusted.mul(balance1Adjusted) + ((balance0Adjusted.mul(balance1Adjusted) / 10))) >= (uint256(_reserve0).mul(_reserve1).mul(1000 ** 2) - ((uint256(_reserve0).mul(_reserve1).mul(1000 ** 2)) / 10)),PanaromaswapV1: K) (PanaromaswapV1Pair.sol#206-208)
+        - balance0 > _reserve0 - amount0Out (PanaromaswapV1Pair.sol#200)
+        - balance1 > _reserve1 - amount1Out (PanaromaswapV1Pair.sol#201)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+
+PanaromaswapV1ERC20.constructor() (PanaromaswapV1ERC20.sol#24-38) uses assembly
+        - INLINE ASM (PanaromaswapV1ERC20.sol#26-28)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+
+2 different versions of Solidity are used:
+        - Version constraint =0.5.16 is used by:
+                -=0.5.16 (PanaromaswapV1ERC20.sol#1)
+                -=0.5.16 (PanaromaswapV1Pair.sol#1)
+                -=0.5.16 (libraries/Math.sol#1)
+                -=0.5.16 (libraries/SafeMath.sol#1)
+                -=0.5.16 (libraries/UQ112x112.sol#1)
+        - Version constraint >=0.5.0 is used by:
+                ->=0.5.0 (interfaces/IERC20.sol#1)
+                ->=0.5.0 (interfaces/IPanaromaswapV1Callee.sol#1)
+                ->=0.5.0 (interfaces/IPanaromaswapV1ERC20.sol#1)
+                ->=0.5.0 (interfaces/IPanaromaswapV1Factory.sol#1)
+                ->=0.5.0 (interfaces/IPanaromaswapV1Pair.sol#1)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
+
+Version constraint =0.5.16 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+        - AbiReencodingHeadOverflowWithStaticArrayCleanup
+        - DirtyBytesArrayToStorage
+        - NestedCalldataArrayAbiReencodingSizeValidation
+        - ABIDecodeTwoDimensionalArrayMemory
+        - KeccakCaching
+        - EmptyByteArrayCopy
+        - DynamicArrayCleanup
+        - MissingEscapingInFormatting
+        - ImplicitConstructorCallvalueCheck
+        - TupleAssignmentMultiStackSlotComponents
+        - MemoryArrayCreationOverflow
+        - privateCanBeOverridden.
+It is used by:
+        - =0.5.16 (PanaromaswapV1ERC20.sol#1)
+        - =0.5.16 (PanaromaswapV1Pair.sol#1)
+        - =0.5.16 (libraries/Math.sol#1)
+        - =0.5.16 (libraries/SafeMath.sol#1)
+        - =0.5.16 (libraries/UQ112x112.sol#1)
+Version constraint >=0.5.0 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+        - DirtyBytesArrayToStorage
+        - ABIDecodeTwoDimensionalArrayMemory
+        - KeccakCaching
+        - EmptyByteArrayCopy
+        - DynamicArrayCleanup
+        - ImplicitConstructorCallvalueCheck
+        - TupleAssignmentMultiStackSlotComponents
+        - MemoryArrayCreationOverflow
+        - privateCanBeOverridden
+        - SignedArrayStorageCopy
+        - ABIEncoderV2StorageArrayWithMultiSlotElement
+        - DynamicConstructorArgumentsClippedABIV2
+        - UninitializedFunctionPointerInConstructor
+        - IncorrectEventSignatureInLibraries
+        - ABIEncoderV2PackedStorage.
+It is used by:
+        - >=0.5.0 (interfaces/IERC20.sol#1)
+        - >=0.5.0 (interfaces/IPanaromaswapV1Callee.sol#1)
+        - >=0.5.0 (interfaces/IPanaromaswapV1ERC20.sol#1)
+        - >=0.5.0 (interfaces/IPanaromaswapV1Factory.sol#1)
+        - >=0.5.0 (interfaces/IPanaromaswapV1Pair.sol#1)
+solc-0.5.16 is an outdated solc version. Use a more recent version (at least 0.8.0), if possible.
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+
+Low level call in PanaromaswapV1Pair._safeTransfer(address,address,uint256) (PanaromaswapV1Pair.sol#48-51):
+        - (success,data) = token.call(abi.encodeWithSelector(SELECTOR,to,value)) (PanaromaswapV1Pair.sol#49)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+
+Variable PanaromaswapV1ERC20.DOMAIN_SEPARATOR (PanaromaswapV1ERC20.sol#16) is not in mixedCase
+Parameter PanaromaswapV1Pair.initialize(address,address,address,address)._token0 (PanaromaswapV1Pair.sol#70) is not in mixedCase
+Parameter PanaromaswapV1Pair.initialize(address,address,address,address)._token1 (PanaromaswapV1Pair.sol#70) is not in mixedCase
+Parameter PanaromaswapV1Pair.initialize(address,address,address,address)._routerAddress (PanaromaswapV1Pair.sol#70) is not in mixedCase
+Parameter PanaromaswapV1Pair.initialize(address,address,address,address)._routerAddress2 (PanaromaswapV1Pair.sol#70) is not in mixedCase
+Variable PanaromaswapV1Pair.RouterAddress (PanaromaswapV1Pair.sol#23) is not in mixedCase
+Variable PanaromaswapV1Pair.RouterAddress2 (PanaromaswapV1Pair.sol#24) is not in mixedCase
+Function IPanaromaswapV1ERC20.DOMAIN_SEPARATOR() (interfaces/IPanaromaswapV1ERC20.sol#18) is not in mixedCase
+Function IPanaromaswapV1ERC20.PERMIT_TYPEHASH() (interfaces/IPanaromaswapV1ERC20.sol#19) is not in mixedCase
+Function IPanaromaswapV1Pair.DOMAIN_SEPARATOR() (interfaces/IPanaromaswapV1Pair.sol#18) is not in mixedCase
+Function IPanaromaswapV1Pair.PERMIT_TYPEHASH() (interfaces/IPanaromaswapV1Pair.sol#19) is not in mixedCase
+Function IPanaromaswapV1Pair.MINIMUM_LIQUIDITY() (interfaces/IPanaromaswapV1Pair.sol#36) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+
+PanaromaswapV1Pair.admin (PanaromaswapV1Pair.sol#22) should be constant
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant
+PanaromaswapV1Pair.sol analyzed (10 contracts with 100 detectors), 39 result(s) found
